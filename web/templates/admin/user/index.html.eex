@@ -1,0 +1,20 @@
+<h1>Users  List</h1>
+<table>
+  <tr>
+    <th>Id</th>
+    <th>Name</th>
+    <th>Admin</th>
+    <th>Email</th>
+    <th>Users Post</th>>
+  </tr>
+   <%= for user <- @users do %>
+      <tr>
+          <td><%=user.id%></td>
+          <td><%=user.name%></td>
+          <td><%=user.is_admin%></td>
+          <td><%= link user.email,to: admin_user_path(@conn, :show, user) %></td>
+        
+      </tr>
+    <% end %>
+</table>
+

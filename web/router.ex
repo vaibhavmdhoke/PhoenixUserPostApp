@@ -13,11 +13,51 @@ defmodule SimpleAuth.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :login_required do
+    plug Guardian.Plug.EnsureAuthenticated,
+       handler: SimpleAuth.GuardianErrorHandler
+  end
+  
+  pipeline :admin_required do
+    plug SimpleAuth.CheckAdmin
+  end
+
+  # guestzone
   scope "/", SimpleAuth do
-    pipe_through :browser # Use the default browser stack
+    pipe_through [:browser, :with_session] # Use the default browser stack
 
     get "/", PageController, :index
+    resources "/sessions", SessionController, only: [:new, :create, :delete]
+    resources "/users", UserController, only: [:show, :new, :create]
+
+    # registered user zone
+    scope "/" do
+      pipe_through [:login_required]
+
+      resources "/users", UserController, only: [:show] do
+        resources "/posts", PostController
+      end
+
+      # admin zone
+      scope "/admin", Admin, as: :admin do
+        pipe_through [:admin_required]
+
+        resources "/users", UserController, only: [:index, :show] do
+          resources "/posts", PostController, only: [:index, :show]
+        end
+      end
+    end
   end
+
+
+
+
+  pipeline :with_session do
+    plug Guardian.Plug.VerifySession
+    plug Guardian.Plug.LoadResource
+    plug SimpleAuth.CurrentUser
+  end
+
 
   # Other scopes may use custom stacks.
   # scope "/api", SimpleAuth do

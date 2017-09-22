@@ -8,14 +8,17 @@ defmodule SimpleAuth.Post do
 
     timestamps()
   end
-  belongs_to :user, SimpleAuth.User
-  
+
+  @required_fields ~w(title)a
+  @optional_fields ~w(body)a
+
   @doc """
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:title, :body])
-    |> validate_required([:title, :body])
+    |> cast(params, @required_fields ++ @optional_fields)
+    |> validate_required(@required_fields)
+    |> assoc_constraint(:user)
   end
 end
